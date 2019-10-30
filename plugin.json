@@ -1,0 +1,27 @@
+{
+	"pluginName": "讯飞ocr",
+	"description": "使用讯飞ocr接口图片识别文本",
+	"main": "./dist/index.html",
+	"author": "anrgct",
+	"version": "0.0.1",
+	"logo": "./src/images/OCR-blue.png",
+    "preload":"preload.js", 
+	"features": [
+	    {
+			"code": "xunfei",
+			"explain": "讯飞ocr图片识别文本",
+	        "cmds":["xunfeiocr","讯飞ocr",{
+				"type": "img",
+				"label": "讯飞ocr"
+			 },
+			 {
+			   "type": "files",
+			   "label": "讯飞ocr",
+			   "fileType": "file",
+			   "match": "/.(png|jpg|jpeg|bmp)$/;", 
+			   "minNum": 1,
+			   "maxNum": 1
+			 }]
+	    }
+	]
+}
