@@ -5,8 +5,10 @@
   "main": "",
   "scripts": {
     "start": "parcel serve ./src/index.html",
-    "build": "parcel build ./src/index.html --public-url ./",
-    "watch": "parcel watch ./src/index.html --public-url ./"
+    "build:client": "parcel build ./src/index.html --public-url ./ --no-source-maps",
+    "build:server": "parcel build ./src/preload.js --target node --bundle-node-modules --no-source-maps",
+    "build:all": "npm run build:server && npm run build:client",
+    "watch:client": "parcel watch ./src/index.html --public-url ./"
   },
   "author": "anrgct@qq.com",
   "license": "ISC",
