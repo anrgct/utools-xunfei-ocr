@@ -21,8 +21,5 @@
   "devDependencies": {
     "cssnano": "^4.1.10",
     "less": "^3.10.3"
-  },
-  "alias":{
-    "electron":false
   }
 }
