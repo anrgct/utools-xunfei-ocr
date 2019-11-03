@@ -6,6 +6,3 @@
 - 支持图片类型 jpg, jpeg, png, bmp
 - 支持图片最大体积 3M
 - 支持填入自己申请的key，本地调用识别
-
-
-GitHub项目地址 [https://github.com/anrgct/utools-xunfei-ocr](https://github.com/anrgct/utools-xunfei-ocr)

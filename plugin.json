@@ -5,7 +5,10 @@
 	"author": "anrgct",
 	"version": "0.0.1",
 	"logo": "./src/images/OCR-blue.png",
-    "preload":"preload.js", 
+	"preload":"./dist/preload.js", 
+	"development": {
+        "preload": "./src/preload.js"
+    },
 	"features": [
 	    {
 			"code": "xunfei",
@@ -18,7 +21,7 @@
 			   "type": "files",
 			   "label": "讯飞ocr",
 			   "fileType": "file",
-			   "match": "/.(png|jpg|jpeg|bmp)$/;", 
+			   "match": "/.(png|jpg|jpeg|bmp)$/", 
 			   "minNum": 1,
 			   "maxNum": 1
 			 }]

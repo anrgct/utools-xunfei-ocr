@@ -8,12 +8,20 @@ import '../css/formbase.min.css';
 import '../css/animate.css';
 import '../css/base.less';
 
-const alert = (msg) => {
-    new Noty({
+let localConfig = {
+    source:'remote'
+}
+
+const alert = (msg, opt = {}) => {
+    let defaultOption = {
         text: msg,
         type: 'error',
         layout: 'topRight',
         timeout: 3000
+    } 
+    new Noty({
+        ...defaultOption,
+        ...opt
     }).show();
 }
 // 文档检查
@@ -41,7 +49,7 @@ const uploadImage = file => {
         $('.main-box__loading').show();
         if(localConfig.source == 'remote'){
             if(bapp){
-                bapp.writeJSON(localConfig);
+                bapp.saveConfig(localConfig);
             }
             var fd = new FormData();
             fd.append("file", file);
@@ -63,9 +71,18 @@ const uploadImage = file => {
                         $('.main-box__loading').hide();
                         alert(body);
                     }
+                },
+                error(){
+                    $('.main-box__loading').hide();
+                    alert('请求失败');
                 }
             });
         }else{
+            if (!localConfig.appid || !localConfig.apiKey) {
+                alert('请填入appid和apiKey, 请到“https://www.xfyun.cn/services/textRecg”申请”印刷文字识别“的appid和apiKey', {timeout:8000,closeWith:[]});
+                $('.main-box__loading').hide();
+                return
+            }
             if(bapp){
                 bapp.localRequest(src, localConfig, success, fail)
             }
@@ -83,8 +100,9 @@ const uploadImage = file => {
                 blockItem.line.forEach(blockLineItem => {
                     blockLineItem.word.forEach(blockLineWordItem => {
                         result += blockLineWordItem.content;
-                        result += '\n'
+                        result += ' '
                     })
+                    result += '\n'
                 })
             }
         });
@@ -102,7 +120,30 @@ const uploadImage = file => {
 
     }
 }
+//生成file对象并上传解析
+const genFileAndupload = function({fileName, buffer, ext, base64}){
+    let file;
+    if(base64){
+        file = dataURLtoFile(base64);
+    }else{
+        file = new File([buffer], fileName, {type:`image/${ext.toLowerCase()}`});
+    }
+    console.log(file)
+    uploadImage(file);
+
+    function dataURLtoFile(dataurl) {
+        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        let filename = `${Math.random().toString('16').slice(2)}.${mime.split('/')[1]}`;
+        return new File([u8arr], filename, {type:mime});
+    }
+}
+//绑定事件
 const bindEvent = function () {
+    //粘贴图片事件
     $(document).on('paste', function (e) {
         let event = e.originalEvent;
         if (!(event.clipboardData && event.clipboardData.items)) {
@@ -118,12 +159,37 @@ const bindEvent = function () {
                 })
             } else if (item.kind === "file") {
                 var pasteFile = item.getAsFile();
-                console.log(pasteFile)
                 uploadImage(pasteFile); // 上传文件
+                // console.log(pasteFile)
                 // pasteFile就是获取到的文件
             }
         }
     })
+    $('.main-box__left').on('dragover', function (e) {
+        e.preventDefault();
+    })
+    $('.main-box__left').on('dragenter', function (e) {
+        e.preventDefault();
+    })
+    $('.main-box__left').on('drop', function (e) {
+        e.preventDefault();
+        let files = e.originalEvent.dataTransfer.files;
+        if (!files.length) {
+            return
+        }
+        let file = files[0];
+        if (files.length > 1) {
+            alert('仅支持上传一个文件');
+            return;
+        }
+        if (!checkDocument(file)) {
+            // 上传失败直接退出
+            e.target.value = '';
+            return;
+        }
+        uploadImage(file); // 上传文件
+    })
+    //隐藏配置面板
     $(document).on('click',function(e){
         let $target = $(e.target);
         let $setting_config = $('.setting_config');
@@ -131,27 +197,6 @@ const bindEvent = function () {
             return
         }
         $setting_config.addClass('flipOutX')
-    })
-    $('[name="source"]').on('change',function(e){
-        let $target = $(e.target);
-        let value = $target.val();
-        localConfig.source = value;
-        initConfig();
-    })
-    $('.main-box__show-result').on('input change',function(e){
-        let $target = $(e.target);
-        let value = $target.val();
-        if(value.trim()){
-            $('.main-box__input-place-holder').hide();
-        }else{
-            $('.main-box__input-place-holder').show();
-        }
-    })
-    $('[name="appid"],[name="apiKey"]').on('input',function(e){
-        let $target = $(e.target);
-        let value = $target.val();
-        let name = $target.attr('name');
-        localConfig[name] = value;
     })
     $('.setting__icon').on('click',function(e){
         e.stopPropagation();
@@ -172,91 +217,65 @@ const bindEvent = function () {
             $setting_config.removeClass('flipInX');
         }
     })
-    
+    //修改配置
+    $('[name="source"]').on('change',function(e){
+        let $target = $(e.target);
+        let value = $target.val();
+        localConfig.source = value;
+        initConfig();
+    })
+    $('[name="appid"],[name="apiKey"]').on('input',function(e){
+        let $target = $(e.target);
+        let value = $target.val();
+        let name = $target.attr('name');
+        localConfig[name] = value;
+    })
+    $('.main-box__show-result').on('input change',function(e){
+        let $target = $(e.target);
+        let value = $target.val();
+        if(value.trim()){
+            $('.main-box__input-place-holder').hide();
+        }else{
+            $('.main-box__input-place-holder').show();
+        }
+    })
+    //唤出文件选择框
     $('.main-box__left').on('click', function (e) {
-        $('#select-file').trigger('click');
-        // new Noty({
-        //     text: 'NOTY - a dependency-free notification library!',
-        //     type:'info',
-        //     layout: 'center',
-        //     // animation: {
-        //     //     open: 'animated bounceInRight', // Animate.css class names
-        //     //     close: 'animated bounceOutRight' // Animate.css class names
-        //     // }
-        // }).show();
-
-        // new Noty({
-        //     text: 'Do you want to continue? <input id="example" type="text">',
-        //     theme:'mint',
-        //     layout: 'center',
-        //     type:'alert',
-        //     modal:true,
-        //     buttons: [
-        //       Noty.button('YES', 'btn btn-success', function () {
-        //           console.log('button 1 clicked');
-        //       }, {id: 'button1', 'data-status': 'ok'}),
-
-        //       Noty.button('NO', 'btn btn-error', function () {
-        //           console.log('button 2 clicked');
-        //           n.close();
-        //       })
-        //     ]
-        //   }).show()
-    })
-    $('.main-box__left').on('dragover', function (e) {
-        e.preventDefault();
-    })
-    $('.main-box__left').on('dragenter', function (e) {
-        e.preventDefault();
-    })
-    $('.main-box__left').on('drop', function (e) {
-        e.preventDefault();
-        let files = e.originalEvent.dataTransfer.files;
-        if (!files.length) {
-            return
-        }
-        let file = files[0];
-        if (files.length > 1) {
-            alert('仅支持上传一个word文件');
-            return;
-        }
-        if (!checkDocument(file)) {
-            // 上传失败直接退出
-            e.target.value = '';
-            return;
-        }
-        uploadImage(file); // 上传文件
-    })
-
-    $('.select-file').on('change', function () {
-        let file = $('#select-file')[0].files[0];
-        console.log(file)
-        if (!checkDocument(file)) {
-            return
-        }
-        uploadImage(file)
+        if(bapp){
+            bapp.openFile(({fileName, buffer, ext,  error})=>{
+                if(error){
+                    alert(error);
+                    return
+                }
+                genFileAndupload({fileName, buffer, ext})
+            })
+        }        
     })
 }
-function initConfig(){
-    if(localConfig){
-        if(localConfig.source == 'remote'){
-            $('[value="remote"]').attr('checked',true);
-            $('.self-option').hide();
-        }else if(localConfig.source == 'self'){
-            $('[value="self"]').attr('checked',true);
-            $('.self-option').show();
-        }
-        if(localConfig.appid){
-            $('[name="appid"]').val(localConfig.appid);
-        }
-        if(localConfig.apiKey){
-            $('[name="apiKey"]').val(localConfig.apiKey);
-        }
-    }else{
-        window.localConfig = {
-            source:'remote'
-          }
+//初始化配置
+function initConfig(config){
+    if(config){
+        localConfig = config;
     }
+    if(localConfig.source == 'remote'){
+        $('[value="remote"]').attr('checked',true);
+        $('.self-option').hide();
+    }else if(localConfig.source == 'self'){
+        $('[value="self"]').attr('checked',true);
+        $('.self-option').show();
+    }
+    if(localConfig.appid){
+        $('[name="appid"]').val(localConfig.appid);
+    }
+    if(localConfig.apiKey){
+        $('[name="apiKey"]').val(localConfig.apiKey);
+    }
+}
+window.app = {
+    genFileAndupload,
+    initConfig,
+    alert
 }
 initConfig();
 bindEvent();
+
