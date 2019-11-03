@@ -10,9 +10,38 @@
 */
 const CryptoJS = require('crypto-js')
 const request = require('request')
+const isEqual = require('lodash/isEqual');
 const fs = require('fs')
 const path = require('path')
 const version = '0.0.1';
+const {remote} = require('electron');
+
+let localConfig = {};
+let localConfigId = 'localConfig';
+
+//打开文件选择
+function openFile(callback) {
+  remote.dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      {name: 'Images', extensions: ['jpg', 'png', 'jpeg','bmp']},
+    ],
+  }, function (files) {
+    // console.log(files)
+    try{
+      if (files && files[0]) {// 如果有选中
+        let filePath = files[0];
+        let fileName = path.basename(filePath);
+        let buffer = fs.readFileSync(filePath);
+        let ext = path.extname(filePath).slice(1);
+        callback({fileName, buffer, ext});
+      }
+    }catch(err){
+      callback({error: err.message})
+    }
+  })
+
+}
 
 // 组装业务参数
 function getXParamStr() {
@@ -22,33 +51,72 @@ function getXParamStr() {
   }
   return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(xParam)))
 }
-// let putR = utools.db.put({
-//   _id: "demo",
-//   data: "demo"
-// })
-// console.log(putR)
-// let getR = utools.db.get("demo");
-// console.log(getR)
 
-function readJSON(){
-  if(fs.existsSync(path.resolve(__dirname,'../config.json'))){
-    return JSON.parse(fs.readFileSync(path.resolve(__dirname,'../config.json')))
+//初始化本地数据
+utools.onPluginReady(() => {
+  localConfig = utools.db.get(localConfigId) || {};
+  // console.log('initConfig', localConfig)
+  if(window.app && localConfig && localConfig.data){
+    app.initConfig({...localConfig.data})
+  }
+})
+
+// 保存配置
+function saveConfig(config){
+  if(isEqual(config, localConfig.data)) return
+  let data = {
+    _id:localConfigId,
+    data:config,
+  }
+  if(localConfig._rev){
+    data._rev = localConfig._rev
+  }
+  let result = utools.db.put(data);
+  if(result.error){
+    if(window.app){
+      app.alert(result.message)
+    }else{
+      console.log(result.message)
+    }
+  }else{
+    localConfig.data = {...config};
+    localConfig._rev = result.rev;
   }
 }
-function writeJSON(localConfig){
-  fs.writeFileSync(path.resolve(__dirname,'../config.json'),JSON.stringify(localConfig))
-}
 
+//自动获取图片
+utools.onPluginEnter(({code, type, payload}) => {
+  // console.log('用户进入插件', code, type, payload)
+  if(type == 'files'){
+    let file = payload[0];
+    if(file){
+      let {isFile, path:filePath} = file;
+      if(!isFile) return
+      let fileName = path.basename(filePath);
+      let buffer = fs.readFileSync(filePath);
+      let ext = path.extname(filePath).slice(1);
+      if(window.app){
+        window.app.genFileAndupload({fileName, buffer, ext});
+      }
+    }
+  }else if(type == 'img'){
+    if(window.app){
+      window.app.genFileAndupload({base64:payload});
+    }
+  }
+})
+
+//组装发送本地请求
 function localRequest(imgBase64, localConfig, success, fail) {
-  if(!localConfig.appid || !localConfig.apiKey){
+  if (!localConfig.appid || !localConfig.apiKey) {
     return
   }
-  writeJSON(localConfig)
+  saveConfig(localConfig)
   // 获取当前时间戳
   let ts = parseInt(new Date().getTime() / 1000)
 
   // 组装请求头
-  function getReqHeader() { 
+  function getReqHeader() {
     let xParamStr = getXParamStr()
     let xCheckSum = CryptoJS.MD5(config.apiKey + ts + xParamStr).toString()
     return {
@@ -102,15 +170,8 @@ function localRequest(imgBase64, localConfig, success, fail) {
   })
 }
 
-let localConfig = readJSON();
-// console.log('localConfig',localConfig)
-if(!localConfig){
-  localConfig = {
-    source:'remote'
-  }
-}
 window.bapp = {
-  writeJSON,
-  localRequest
+  saveConfig,
+  localRequest,
+  openFile
 }
-window.localConfig = localConfig;

@@ -21,7 +21,7 @@
 			   "type": "files",
 			   "label": "讯飞ocr",
 			   "fileType": "file",
-			   "match": "/.(png|jpg|jpeg|bmp)$/;", 
+			   "match": "/.(png|jpg|jpeg|bmp)$/", 
 			   "minNum": 1,
 			   "maxNum": 1
 			 }]

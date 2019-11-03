@@ -14,11 +14,15 @@
   "license": "ISC",
   "dependencies": {
     "crypto-js": "^3.1.9-1",
+    "lodash": "^4.17.15",
     "noty": "^3.2.0-beta",
     "request": "^2.88.0"
   },
   "devDependencies": {
     "cssnano": "^4.1.10",
     "less": "^3.10.3"
+  },
+  "alias":{
+    "electron":false
   }
 }
