@@ -7,7 +7,8 @@
     "start": "parcel serve ./src/index.html",
     "build:client": "parcel build ./src/index.html --public-url ./ --no-source-maps",
     "build:server": "parcel build ./src/preload.js --target node --bundle-node-modules --no-source-maps",
-    "build:all": "npm run build:server && npm run build:client",
+    "build": "npm run build:server && npm run build:client",
+    "watch:server": "parcel watch ./src/preload.js --target node --bundle-node-modules",
     "watch:client": "parcel watch ./src/index.html --public-url ./"
   },
   "author": "anrgct@qq.com",

@@ -193,7 +193,7 @@ const bindEvent = function () {
     $(document).on('click',function(e){
         let $target = $(e.target);
         let $setting_config = $('.setting_config');
-        if($target.is('[target="setting"]') || $target.parents('[target="setting"]').length || !$setting_config.is(':visible')){
+        if($target.is('.setting_config') || $target.parents('.setting_config').length || !$setting_config.is(':visible')){
             return
         }
         $setting_config.addClass('flipOutX')
