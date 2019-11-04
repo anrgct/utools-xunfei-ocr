@@ -3,7 +3,7 @@
 	"description": "使用讯飞ocr接口图片识别文本",
 	"main": "./dist/index.html",
 	"author": "anrgct",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"logo": "./src/images/OCR-blue.png",
 	"preload":"./dist/preload.js", 
 	"development": {

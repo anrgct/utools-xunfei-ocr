@@ -16,7 +16,7 @@ const alert = (msg, opt = {}) => {
     let defaultOption = {
         text: msg,
         type: 'error',
-        layout: 'topRight',
+        layout: 'bottomRight',
         timeout: 3000
     } 
     new Noty({
@@ -97,13 +97,13 @@ const uploadImage = file => {
         let result = '';
         block.forEach(blockItem => {
             if (blockItem.type == 'text') {
-                blockItem.line.forEach(blockLineItem => {
-                    blockLineItem.word.forEach(blockLineWordItem => {
-                        result += blockLineWordItem.content;
-                        result += ' '
+                let lines = blockItem.line.map(blockLineItem => {
+                    let words = blockLineItem.word.map(blockLineWordItem => {
+                        return blockLineWordItem.content;
                     })
-                    result += '\n'
+                    return words.join(' ');
                 })
+                result += lines.join('\n');
             }
         });
         $('.main-box__show-result').val(result).trigger('change');
@@ -198,7 +198,7 @@ const bindEvent = function () {
         }
         $setting_config.addClass('flipOutX')
     })
-    $('.setting__icon').on('click',function(e){
+    $('.setting__icon[target=setting]').on('click',function(e){
         e.stopPropagation();
         let $setting_config = $('.setting_config');
         if($setting_config.is(':visible')){
@@ -206,6 +206,21 @@ const bindEvent = function () {
         }else{
             $setting_config.show();
             $setting_config.addClass('flipInX');
+        }
+    })
+    $('.setting__icon[target=copy]').on('click',function(e){
+        let $text = $('.main-box__show-result');
+        let value = $text.val().trim();
+        if(value){
+            $text.select()
+            let result = document.execCommand("Copy");
+            if(result){
+                alert('复制成功',{type: 'success'})
+            }else{
+                alert('复制失败')
+            }
+        }else{
+            alert('没有文本')
         }
     })
     $('.setting_config').on('animationend',function(e){

@@ -14,7 +14,8 @@ const isEqual = require('lodash/isEqual');
 const fs = require('fs')
 const path = require('path')
 const version = '0.0.1';
-const {remote} = require('electron');
+const _import = require;
+const {remote} =  _import("electron");
 
 let localConfig = {};
 let localConfigId = 'localConfig';

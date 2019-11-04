@@ -58,12 +58,21 @@
 .setting{
     position: relative;
     margin-top: 10px;
-    &__icon{
+    &__menu{
         display: flex;
         color: #17f;
-        cursor: pointer;
-        &>svg{
+        svg{
             margin-right: 5px;
+        }
+    }
+    &__icon{
+        cursor: pointer;
+        display: flex;
+        border: 1px solid;
+        padding: 5px;
+        border-radius: 10px;
+        &:not(:first-of-type){
+            margin-left: 15px;
         }
     }
     &_config{
