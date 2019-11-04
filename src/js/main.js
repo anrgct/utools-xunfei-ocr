@@ -97,13 +97,13 @@ const uploadImage = file => {
         let result = '';
         block.forEach(blockItem => {
             if (blockItem.type == 'text') {
-                blockItem.line.forEach(blockLineItem => {
-                    blockLineItem.word.forEach(blockLineWordItem => {
-                        result += blockLineWordItem.content;
-                        result += ' '
+                let lines = blockItem.line.map(blockLineItem => {
+                    let words = blockLineItem.word.map(blockLineWordItem => {
+                        return blockLineWordItem.content;
                     })
-                    result += '\n'
+                    return words.join(' ');
                 })
+                result += lines.join('\n');
             }
         });
         $('.main-box__show-result').val(result).trigger('change');
