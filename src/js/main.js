@@ -7,6 +7,7 @@ import '../css/spinkit.min.css';
 import '../css/formbase.min.css';
 import '../css/animate.css';
 import '../css/base.less';
+import {localRequest} from './localRequest';
 
 let localConfig = {
     source:'remote'
@@ -58,24 +59,10 @@ const uploadImage = file => {
                 type: "POST",
                 processData: false,
                 contentType: false,
+                dataType:'JSON',
                 data: fd,
-                success: function(body) {
-                    try{
-                        let res = JSON.parse(body)
-                        if (res.code != 0) {
-                            fail(err, res)
-                            return
-                        }
-                        success(res);
-                    }catch(e){
-                        $('.main-box__loading').hide();
-                        alert(body);
-                    }
-                },
-                error(){
-                    $('.main-box__loading').hide();
-                    alert('请求失败');
-                }
+                success: resolveCallback,
+                error:rejectCallback
             });
         }else{
             if (!localConfig.appid || !localConfig.apiKey) {
@@ -83,12 +70,26 @@ const uploadImage = file => {
                 $('.main-box__loading').hide();
                 return
             }
-            if(bapp){
-                bapp.localRequest(src, localConfig, success, fail)
-            }
+            localRequest($, src, localConfig, resolveCallback, rejectCallback)
         }
     }
-    function success(res){
+    function rejectCallback(){
+        $('.main-box__loading').hide();
+        alert('请求失败');
+    }
+    function resolveCallback(res){
+        try{
+            if (res.code != 0) {
+                failResovle(res)
+                return
+            }
+            successResolve(res);
+        }catch(e){
+            $('.main-box__loading').hide();
+            alert(body);
+        }
+    }
+    function successResolve(res){
         $('.main-box__loading').hide();
         let data = res.data;
         let {
@@ -108,9 +109,8 @@ const uploadImage = file => {
         });
         $('.main-box__show-result').val(result).trigger('change');
     }
-    function fail(err, res){
+    function failResovle(res){
         $('.main-box__loading').hide();
-        console.log(err)
         console.log(`sid：${res.sid}`)
         let msg = `发生错误，错误码：${res.code} 错误原因：${res.desc} sid：${res.sid}`
         msg += `请前往https://www.xfyun.cn/document/error-code?code=${res.code}查询解决办法`;
