@@ -5,10 +5,7 @@
 	"author": "anrgct",
 	"version": "0.0.2",
 	"logo": "./src/images/OCR-blue.png",
-	"preload":"./dist/preload.js", 
-	"development": {
-        "preload": "./src/preload.js"
-    },
+	"preload":"./src/preload.js", 
 	"features": [
 	    {
 			"code": "xunfei",

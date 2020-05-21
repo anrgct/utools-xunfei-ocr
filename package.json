@@ -2,24 +2,50 @@
   "name": "utools-xunfei-ocr",
   "version": "1.0.0",
   "description": "",
-  "main": "",
+  "browserslist": ["last 2 Chrome versions"],
+  "browser": "dist/index.html",
+  "targets": {
+    "browser": {
+      "engines": {
+        "browsers": ["last 2 Chrome versions"]
+      },
+      "publicUrl": "./",
+      "sourceMap": false
+    }
+  },
   "scripts": {
     "start": "parcel serve ./src/index.html",
-    "build:client": "parcel build ./src/index.html --public-url ./ --no-source-maps",
-    "build:server": "parcel build ./src/preload.js --target node --bundle-node-modules --no-source-maps",
-    "build": "npm run build:server && npm run build:client",
-    "watch:server": "parcel watch ./src/preload.js --target node --bundle-node-modules",
-    "watch:client": "parcel watch ./src/index.html --public-url ./"
+    "build": "rm -rf ./dist && parcel build ./src/index.html",
+    "watch": "rm -rf ./dist && parcel watch ./src/index.html"
   },
   "author": "anrgct@qq.com",
   "license": "ISC",
   "dependencies": {
+    "@ant-design/icons": "^4.1.0",
+    "antd": "^4.2.3",
     "crypto-js": "^3.1.9-1",
     "lodash": "^4.17.15",
-    "noty": "^3.2.0-beta"
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.9.6",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/preset-react": "^7.9.4",
     "cssnano": "^4.1.10",
-    "less": "^3.10.3"
+    "less": "^3.10.3",
+    "parcel": "^2.0.0-alpha.3.2"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-react"
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-syntax-dynamic-import",
+      "@babel/proposal-object-rest-spread"
+    ]
   }
 }

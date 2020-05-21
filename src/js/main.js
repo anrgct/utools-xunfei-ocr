@@ -1,296 +1,207 @@
-import $ from '../assets/jquery-3.4.1.min';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
+import { Row, Spin, message, Input, Button } from 'antd';
+import { ScissorOutlined, LoadingOutlined, ReloadOutlined, SettingOutlined, CopyOutlined, TranslationOutlined, HistoryOutlined } from '@ant-design/icons';
+import Paste_wrap from './components/paste_wrap';
+import Img_box from './components/img_box';
+import SettingPage from './components/setting_page';
+import HistoryPage from './components/history_page';
+import { uploadImage, genFileAndupload } from './common';
+import { defaultConfig } from './default_config';
+import '../less/main.less';
+import 'antd/dist/antd.css';
+const { TextArea } = Input;
 
-import Noty from 'noty';
-import 'noty/lib/themes/mint.css';
-import 'noty/lib/noty.css';
-import '../css/spinkit.min.css';
-import '../css/formbase.min.css';
-import '../css/animate.css';
-import '../css/base.less';
-import {localRequest} from './localRequest';
+const antIcon = <LoadingOutlined style={{ fontSize: 40 }} spin />;
 
-let localConfig = {
-    source:'remote'
-}
+export class App extends Component {
+    constructor(props) {
+        super(props)
+    
+        this.state = {
+            txt:'',
+            src:'',
+            loading:false,
+            settingVisible:false,
+            historyVisible:false,
+            historys:[],
+            hasError:false,
+            file:null,
+            config:null
+        }
+        this.genFileAndupload = genFileAndupload.bind(this);
+        this.uploadImage = uploadImage.bind(this);
+        this.initConfig = this.initConfig.bind(this);
+        this.initHistory = this.initHistory.bind(this);
 
-const alert = (msg, opt = {}) => {
-    let defaultOption = {
-        text: msg,
-        type: 'error',
-        layout: 'bottomRight',
-        timeout: 3000
-    } 
-    new Noty({
-        ...defaultOption,
-        ...opt
-    }).show();
-}
-// 文档检查
-const checkDocument = file => {
-    const accept = ['.png', '.jpg', '.bmp', '.jpeg'];
-    const index = file.name.lastIndexOf('.');
-    if (index < 0 || accept.indexOf(file.name.substr(index).toLowerCase()) < 0) { // 检查文件类型
-        alert('暂不支持该文件格式');
-        return false;
-    }
-    if (file.size > 3 * 1024 * 1024) { // 检查文件大小
-        alert('图片大于3MB，上传失败');
-        return false;
-    }
-    return true;
-};
-//上传解析
-const uploadImage = file => {
-    var oFReader = new FileReader();
-    oFReader.readAsDataURL(file);
-    oFReader.onloadend = function (oFRevent) {
-        var src = oFRevent.target.result;
-        $('.main-box__show-img').attr('src', src).show();
-        $('.main-box__place-holder').hide();
-        $('.main-box__loading').show();
-        if(localConfig.source == 'remote'){
-            if(bapp){
-                bapp.saveConfig(localConfig);
-            }
-            var fd = new FormData();
-            fd.append("file", file);
-            $.ajax({
-                url: "http://down.aka.today/upload_file.php",
-                type: "POST",
-                processData: false,
-                contentType: false,
-                dataType:'JSON',
-                data: fd,
-                success: resolveCallback,
-                error:rejectCallback
-            });
-        }else{
-            if (!localConfig.appid || !localConfig.apiKey) {
-                alert('请填入appid和apiKey, 请到“https://www.xfyun.cn/services/textRecg”申请”印刷文字识别“的appid和apiKey', {timeout:8000,closeWith:[]});
-                $('.main-box__loading').hide();
-                return
-            }
-            localRequest($, src, localConfig, resolveCallback, rejectCallback)
+        window.app = {
+            genFileAndupload: this.genFileAndupload,
+            initConfig: this.initConfig,
+            initHistory: this.initHistory
         }
     }
-    function rejectCallback(){
-        $('.main-box__loading').hide();
-        alert('请求失败');
-    }
-    function resolveCallback(res){
-        try{
-            if (res.code != 0) {
-                failResovle(res)
-                return
-            }
-            successResolve(res);
-        }catch(e){
-            $('.main-box__loading').hide();
-            alert(body);
-        }
-    }
-    function successResolve(res){
-        $('.main-box__loading').hide();
-        let data = res.data;
-        let {
-            block
-        } = data;
-        let result = '';
-        block.forEach(blockItem => {
-            if (blockItem.type == 'text') {
-                let lines = blockItem.line.map(blockLineItem => {
-                    let words = blockLineItem.word.map(blockLineWordItem => {
-                        return blockLineWordItem.content;
-                    })
-                    return words.join(' ');
-                })
-                result += lines.join('\n');
-            }
-        });
-        $('.main-box__show-result').val(result).trigger('change');
-    }
-    function failResovle(res){
-        $('.main-box__loading').hide();
-        console.log(`sid：${res.sid}`)
-        let msg = `发生错误，错误码：${res.code} 错误原因：${res.desc} sid：${res.sid}`
-        msg += `请前往https://www.xfyun.cn/document/error-code?code=${res.code}查询解决办法`;
 
-        $('.main-box__show-result').val(msg).trigger('change');
-        alert(msg);
-
+    initConfig(config){
+        if(!config){
+            config = defaultConfig;
+        }
+        this.setState({
+            config
+        })
     }
-}
-//生成file对象并上传解析
-const genFileAndupload = function({fileName, buffer, ext, base64}){
-    let file;
-    if(base64){
-        file = dataURLtoFile(base64);
-    }else{
-        file = new File([buffer], fileName, {type:`image/${ext.toLowerCase()}`});
-    }
-    console.log(file)
-    uploadImage(file);
 
-    function dataURLtoFile(dataurl) {
-        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-        while(n--){
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        let filename = `${Math.random().toString('16').slice(2)}.${mime.split('/')[1]}`;
-        return new File([u8arr], filename, {type:mime});
-    }
-}
-//绑定事件
-const bindEvent = function () {
-    //粘贴图片事件
-    $(document).on('paste', function (e) {
-        let event = e.originalEvent;
-        if (!(event.clipboardData && event.clipboardData.items)) {
-            return;
-        }
-
-        for (var i = 0, len = event.clipboardData.items.length; i < len; i++) {
-            var item = event.clipboardData.items[i];
-
-            if (item.kind === "string") {
-                item.getAsString(function (str) {
-                    // str 是获取到的字符串
-                })
-            } else if (item.kind === "file") {
-                var pasteFile = item.getAsFile();
-                uploadImage(pasteFile); // 上传文件
-                // console.log(pasteFile)
-                // pasteFile就是获取到的文件
-            }
-        }
-    })
-    $('.main-box__left').on('dragover', function (e) {
-        e.preventDefault();
-    })
-    $('.main-box__left').on('dragenter', function (e) {
-        e.preventDefault();
-    })
-    $('.main-box__left').on('drop', function (e) {
-        e.preventDefault();
-        let files = e.originalEvent.dataTransfer.files;
-        if (!files.length) {
-            return
-        }
-        let file = files[0];
-        if (files.length > 1) {
-            alert('仅支持上传一个文件');
-            return;
-        }
-        if (!checkDocument(file)) {
-            // 上传失败直接退出
-            e.target.value = '';
-            return;
-        }
-        uploadImage(file); // 上传文件
-    })
-    //隐藏配置面板
-    $(document).on('click',function(e){
-        let $target = $(e.target);
-        let $setting_config = $('.setting_config');
-        if($target.is('.setting_config') || $target.parents('.setting_config').length || !$setting_config.is(':visible')){
-            return
-        }
-        $setting_config.addClass('flipOutX')
-    })
-    $('.setting__icon[target=setting]').on('click',function(e){
-        e.stopPropagation();
-        let $setting_config = $('.setting_config');
-        if($setting_config.is(':visible')){
-            $setting_config.addClass('flipOutX')
-        }else{
-            $setting_config.show();
-            $setting_config.addClass('flipInX');
-        }
-    })
-    $('.setting__icon[target=copy]').on('click',function(e){
-        let $text = $('.main-box__show-result');
-        let value = $text.val().trim();
-        if(value){
-            $text.select()
-            let result = document.execCommand("Copy");
-            if(result){
-                alert('复制成功',{type: 'success'})
-            }else{
-                alert('复制失败')
-            }
-        }else{
-            alert('没有文本')
-        }
-    })
-    $('.setting_config').on('animationend',function(e){
-        let $setting_config = $('.setting_config');
-        if($setting_config.is('.flipOutX')){
-            $setting_config.hide()
-            $setting_config.removeClass('flipOutX');
-        }else{
-            $setting_config.removeClass('flipInX');
-        }
-    })
-    //修改配置
-    $('[name="source"]').on('change',function(e){
-        let $target = $(e.target);
-        let value = $target.val();
-        localConfig.source = value;
-        initConfig();
-    })
-    $('[name="appid"],[name="apiKey"]').on('input',function(e){
-        let $target = $(e.target);
-        let value = $target.val();
-        let name = $target.attr('name');
-        localConfig[name] = value;
-    })
-    $('.main-box__show-result').on('input change',function(e){
-        let $target = $(e.target);
-        let value = $target.val();
-        if(value.trim()){
-            $('.main-box__input-place-holder').hide();
-        }else{
-            $('.main-box__input-place-holder').show();
-        }
-    })
-    //唤出文件选择框
-    $('.main-box__left').on('click', function (e) {
-        if(bapp){
-            bapp.openFile(({fileName, buffer, ext,  error})=>{
-                if(error){
-                    alert(error);
-                    return
-                }
-                genFileAndupload({fileName, buffer, ext})
+    initHistory(historys){
+        if(historys && historys.length){
+            this.setState({
+                historys
             })
-        }        
-    })
-}
-//初始化配置
-function initConfig(config){
-    if(config){
-        localConfig = config;
+        }
     }
-    if(localConfig.source == 'remote'){
-        $('[value="remote"]').attr('checked',true);
-        $('.self-option').hide();
-    }else if(localConfig.source == 'self'){
-        $('[value="self"]').attr('checked',true);
-        $('.self-option').show();
-    }
-    if(localConfig.appid){
-        $('[name="appid"]').val(localConfig.appid);
-    }
-    if(localConfig.apiKey){
-        $('[name="apiKey"]').val(localConfig.apiKey);
-    }
-}
-window.app = {
-    genFileAndupload,
-    initConfig,
-    alert
-}
-initConfig();
-bindEvent();
 
+    setSrc = (src)=> {
+        this.setState({ 
+            src
+        })
+    }
+
+    setLoading = (loading)=>{
+        this.setState({ loading })
+    }
+
+    openSetting = () => {
+        this.setState({ settingVisible : true })
+    }
+
+    updateConfig = (config) => {
+        this.setState({ config })
+    }
+
+    closeSetting = () => {
+        this.setState({ settingVisible : false })
+    }
+
+    openHistory = () => {
+        this.setState({ historyVisible : true })
+    }
+
+    closeHistory = () => {
+        this.setState({ historyVisible : false })
+    }
+
+    selectHistory = ({result, src})=> {
+        this.setState({
+            src: src,
+            txt: result,
+            historyVisible: false
+        })
+    }
+
+    handleCopy = ()=>{
+        let txt = this.state.txt;
+        if(!txt){
+            message.error('没有文本');
+            return 
+        }
+        
+        if(bapp && bapp.copyText(txt)){
+            message.success('复制成功');
+        }else{
+            message.success('复制失败');
+        }
+    }
+
+    handleRedirct = ()=>{
+        let txt = this.state.txt;
+        let translate = this.state.config.translate;
+        if(!txt){
+            message.error('没有文本');
+            return 
+        }
+        bapp && bapp.redirect(translate, txt)
+    }
+
+    handleScreenCapture = () => {
+        bapp && bapp.screenCapture((base64)=>{
+            console.log(base64)
+            this.genFileAndupload({ base64 })
+        })
+    }
+
+    reUpload = ()=>{
+        this.state.file && this.uploadImage(this.state.file)
+    }
+
+    clearImg = ()=>{
+        this.setState({
+            src:'',
+            txt: '',
+            hasError:false
+        })
+    }
+
+    pushHistory = ({src, result}) => {
+        let {histroyLength} = this.state.config;
+        let historys = [
+            {
+                src,
+                result,
+                time:(new Date()).toLocaleString()
+            },
+            ...this.state.historys,
+        ];
+        if(historys.length > histroyLength){
+            historys = historys.slice(0, histroyLength);
+        }
+        this.setState({
+            historys
+        },()=>{
+            bapp && bapp.writeHistory(this.state.historys)
+        })
+    }
+
+    clearHistory = ()=>{
+        this.setState({
+            historys:[]
+        },()=>{
+            bapp && bapp.writeHistory(this.state.historys)
+        })
+    }
+
+    handleTextChange = (e)=>{
+        let value = e.currentTarget.value;
+        this.setState({ txt: value })
+    }
+    
+    render() {
+        const { txt, src, loading, settingVisible, historyVisible, historys, hasError, config} = this.state;
+        return (
+            <div className="main-page">
+                <Paste_wrap uploadImage={this.uploadImage}>
+                    <Spin spinning={loading} indicator={antIcon}>
+                            <div className='head-menu'>
+                                { hasError && <Button type="dashed" icon={<ReloadOutlined />} onClick={this.reUpload}>重新识别</Button> }
+                                <Button type="dashed" icon={<ScissorOutlined />} onClick={this.handleScreenCapture}>截图</Button>
+                                <Button type="dashed" icon={<CopyOutlined />} onClick={this.handleCopy}>复制</Button>
+                                <Button type="dashed" icon={<TranslationOutlined />} onClick={this.handleRedirct}>翻译</Button>
+                                { (config && config.history) && <Button type="dashed" icon={<HistoryOutlined />} onClick={this.openHistory}>历史</Button>}
+                                <Button type="dashed" shape="circle" type="primary" icon={<SettingOutlined />} onClick={this.openSetting}></Button>
+                            </div>
+                            <div className='main-content'>
+                                    <Img_box uploadImage={this.uploadImage} src={src} clearImg={this.clearImg}/>
+                                    { (txt || src) && (<TextArea rows={4} className="edit-box" value={txt} 
+                                        placeholder='没有内容' onChange={this.handleTextChange}/>)
+                                    }
+                            </div>
+                    </Spin>
+                </Paste_wrap>
+                {config && <SettingPage visible={settingVisible} closeSetting={this.closeSetting} 
+                updateConfig={this.updateConfig} config={config}/>}
+                <HistoryPage visible={historyVisible} closeHistory={this.closeHistory} 
+                historys={historys} clearHistory={this.clearHistory} selectHistory={this.selectHistory}/>
+            </div>
+        )
+    }
+}
+
+
+ReactDOM.render(<App />, document.getElementById('root'));

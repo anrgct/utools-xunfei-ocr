@@ -12,68 +12,73 @@ const CryptoJS = require('crypto-js')
 
 // 组装业务参数
 function getXParamStr() {
-  let xParam = {
-    language: 'cn|en',
-    // "location": "true"
-  }
-  return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(xParam)))
+    let xParam = {
+        language: 'cn|en',
+        // "location": "true"
+    }
+    return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(xParam)))
 }
-
 //组装发送本地请求
-export function localRequest($, imgBase64, localConfig, resolveCallback, rejectCallback) {
-  if (!localConfig.appid || !localConfig.apiKey) {
-    return
-  }
-  if(bapp){
-      bapp.saveConfig(localConfig)
-  }
-  // 获取当前时间戳
-  let ts = parseInt(new Date().getTime() / 1000)
-
-  // 组装请求头
-  function getReqHeader() {
-    let xParamStr = getXParamStr()
-    let xCheckSum = CryptoJS.MD5(config.apiKey + ts + xParamStr).toString()
-    return {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-      'X-Appid': config.appid,
-      'X-CurTime': ts + "",
-      'X-Param': xParamStr,
-      'X-CheckSum': xCheckSum
+export default function localRequest({ imgBase64, localConfig, resolveCallback, rejectCallback, appId, appKey}) {
+    if (!appId || !appKey) {
+      return
     }
-  }
-
-  // 系统配置
-  const config = {
-    // 印刷文字识别 webapi 接口地址
-    hostUrl: "https://webapi.xfyun.cn/v1/service/v1/ocr/general",
-    host: "webapi.xfyun.cn",
-    //在控制台-我的应用-印刷文字识别获取
-    appid: localConfig.appid,
-    // 接口密钥(webapi类型应用开通印刷文字识别服务后，控制台--我的应用---印刷文字识别---服务的apikey)
-    apiKey: localConfig.apiKey,
-    uri: "/v1/ise",
-    // 上传本地图片
-    // file: path.resolve(__dirname, './ocr.jpeg')
-  }
-
-  // 组装postBody
-  function getPostBody() {
-    let image = imgBase64.split(',');
-    image.shift();
-    image = image.join('');
-    return {
-      image: image
+    
+    // 获取当前时间戳
+    let ts = parseInt(new Date().getTime() / 1000)
+    
+    // 组装请求头
+    function getReqHeader() {
+        let xParamStr = getXParamStr()
+        let xCheckSum = CryptoJS.MD5(config.apiKey + ts + xParamStr).toString()
+        return {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+            'X-Appid': config.appid,
+            'X-CurTime': ts + "",
+            'X-Param': xParamStr,
+            'X-CheckSum': xCheckSum
+        }
     }
-  }
-  $.post({
-      type:'POST',
-      url:config.hostUrl,
-      headers:getReqHeader(),
-      data:getPostBody(),
-      dataType:'JSON',
-      success:resolveCallback,
-      error:rejectCallback
-  })
+
+    // 系统配置
+    const config = {
+        // 印刷文字识别 webapi 接口地址
+        hostUrl: "https://webapi.xfyun.cn/v1/service/v1/ocr/general",
+        host: "webapi.xfyun.cn",
+        //在控制台-我的应用-印刷文字识别获取
+        appid: appId, //"5e9728a6",
+        // 接口密钥(webapi类型应用开通印刷文字识别服务后，控制台--我的应用---印刷文字识别---服务的apikey)
+        apiKey: appKey, //"06f00886ac626d09c25d34243e44a841",
+        uri: "/v1/ise",
+        // 上传本地图片
+        // file: path.resolve(__dirname, './ocr.jpeg')
+    }
+
+    function qs(parmas){
+        return Object.keys(parmas).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent(parmas[key]);
+        }).join('&')
+    }
+
+    // 组装postBody
+    function getPostBody() {
+        let image = imgBase64.split(',');
+        image.shift();
+        image = image.join('');
+        let params = { image };
+        return qs(params)
+    }
+
+    let queryParams = {
+        method: "POST",
+        headers: getReqHeader(),
+        body: getPostBody()
+    }
+    fetch(config.hostUrl, queryParams).then(res => res.json())
+        .then(resolveCallback)
+        .catch(rejectCallback)
+
+    
+
 }
 
