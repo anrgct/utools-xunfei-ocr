@@ -11,15 +11,23 @@
 const CryptoJS = require('crypto-js')
 
 // 组装业务参数
-function getXParamStr() {
-    let xParam = {
-        language: 'cn|en',
-        // "location": "true"
+function getXParamStr(type) {
+    let xParam;
+    if(type == 'multilang'){
+        xParam = {
+            // location: false,
+            engine_type: 'recognize_document'
+        }
+    }else{
+        xParam = {
+            language: 'cn|en',
+            // "location": "true"
+        }
     }
     return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(xParam)))
 }
 //组装发送本地请求
-export default function localRequest({ imgBase64, localConfig, resolveCallback, rejectCallback, appId, appKey}) {
+export default function localRequest({ api, type, imgBase64, localConfig, resolveCallback, rejectCallback, appId, appKey}) {
     if (!appId || !appKey) {
       return
     }
@@ -29,7 +37,7 @@ export default function localRequest({ imgBase64, localConfig, resolveCallback, 
     
     // 组装请求头
     function getReqHeader() {
-        let xParamStr = getXParamStr()
+        let xParamStr = getXParamStr(type)
         let xCheckSum = CryptoJS.MD5(config.apiKey + ts + xParamStr).toString()
         return {
             'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
@@ -43,12 +51,12 @@ export default function localRequest({ imgBase64, localConfig, resolveCallback, 
     // 系统配置
     const config = {
         // 印刷文字识别 webapi 接口地址
-        hostUrl: "https://webapi.xfyun.cn/v1/service/v1/ocr/general",
+        hostUrl: api,
         host: "webapi.xfyun.cn",
         //在控制台-我的应用-印刷文字识别获取
-        appid: appId, //"5e9728a6",
+        appid: appId,
         // 接口密钥(webapi类型应用开通印刷文字识别服务后，控制台--我的应用---印刷文字识别---服务的apikey)
-        apiKey: appKey, //"06f00886ac626d09c25d34243e44a841",
+        apiKey: appKey,
         uri: "/v1/ise",
         // 上传本地图片
         // file: path.resolve(__dirname, './ocr.jpeg')

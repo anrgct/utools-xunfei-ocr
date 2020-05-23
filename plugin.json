@@ -3,14 +3,14 @@
 	"description": "使用讯飞ocr接口图片识别文本",
 	"main": "./dist/index.html",
 	"author": "anrgct",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"logo": "./src/images/OCR-blue.png",
 	"preload":"./src/preload.js", 
 	"features": [
 	    {
 			"code": "xunfei",
 			"explain": "讯飞ocr图片识别文本",
-	        "cmds":["xunfeiocr","讯飞ocr",{
+	        "cmds":["讯飞ocr",{
 				"type": "img",
 				"label": "讯飞ocr"
 			 },

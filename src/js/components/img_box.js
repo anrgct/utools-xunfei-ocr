@@ -9,7 +9,7 @@ export class img_box extends Component {
     render() {
         let { src } = this.props;
         return (
-            <div className='img-box'>
+            <div className={`img-box ${src?'has-src':null}`}>
                 {
                     src ? (
                         <>

@@ -35,7 +35,7 @@ export default class DrawerForm extends React.Component {
         values.keys = this.state.keys;
         values.translateOption = this.state.translateOption;
         values = {...this.props.config, ...values};
-        console.log(values)
+        // console.log(values)
         if(!isEqual(this.props.config, values)){
             // console.log('值变化，需保存')
             bapp && bapp.saveConfig(values);
@@ -73,7 +73,7 @@ export default class DrawerForm extends React.Component {
 
     handleTypeChange = ()=>{
         let type = this.getFieldValue('type');
-        let key = this.state.keys[type];
+        let key = this.state.keys;
         if(key){
             let { appId, appKey } = key;
             this.formRef.current.setFieldsValue({
@@ -93,21 +93,21 @@ export default class DrawerForm extends React.Component {
 
     getSourceTip = (currentValue)=>{
         if(currentValue.source == 'local'){
-            return '请到“https://www.xfyun.cn/services/textRecg”申请”印刷文字识别“的appid和apiKey，并设置ip白名单'
+            return '请到(https://www.xfyun.cn)申请appid和apiKey，并设置ip白名单'
         }
     }
 
     getKeyShowTip = (currentValue)=>{
         let trans = {
-            print:'印刷品文字识别',
+            print:'印刷文字识别',
             handwrite:'手写文字识别',
-            multilang:'印刷品文字识别（多语言）',
+            multilang:'印刷文字识别（多语种）',
         }
         return trans[currentValue.type]
     }
 
     getKeyShowValue = (currentValue, attr)=> {
-        let obj = this.state.keys[currentValue.type];
+        let obj = this.state.keys;
         if(obj){
             return obj[attr]
         }
@@ -120,10 +120,7 @@ export default class DrawerForm extends React.Component {
                 // [`keys.${type}.${attr}`]:value
                 keys:{
                     ...this.state.keys,
-                    [type]:{
-                        ...this.state.keys[type],
-                        [attr]:value
-                    }
+                    [attr]:value
                 }
             })
         }
@@ -161,9 +158,9 @@ export default class DrawerForm extends React.Component {
                                     label="识别类型"
                                     initialValue={config.type}>
                                     <Select placeholder="请选择图片识别类型" onChange={this.handleTypeChange}>
-                                        <Option value="print">印刷品文字识别</Option>
+                                        <Option value="print">印刷文字识别</Option>
                                         <Option value="handwrite">手写文字识别</Option>
-                                        <Option value="multilang">印刷品文字识别（多语言）</Option>
+                                        <Option value="multilang">印刷文字识别（多语种）</Option>
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -188,7 +185,7 @@ export default class DrawerForm extends React.Component {
                                         <Col span={12}>
                                             <Form.Item
                                                 name="appId"
-                                                label={`${getKeyShowTip(currentValue)}: appId`}
+                                                label={`appId`}
                                                 initialValue={getKeyShowValue(config, "appId")}>
                                                 <Input
                                                     placeholder="请输入appId" onChange={e=>setKeyShowValue(currentValue,'appId',e.target.value)}/>
@@ -197,7 +194,7 @@ export default class DrawerForm extends React.Component {
                                         <Col span={12}>
                                             <Form.Item
                                                 name="appKey"
-                                                label={`${getKeyShowTip(currentValue)}: appKey`}
+                                                label={`appKey`}
                                                 initialValue={getKeyShowValue(config, "appKey")}>
                                                 <Input placeholder="请输入appKey" onChange={e=>setKeyShowValue(currentValue,'appKey',e.target.value)}/>
                                             </Form.Item>
@@ -262,7 +259,7 @@ export default class DrawerForm extends React.Component {
                                         name='histroyLength'
                                         initialValue={config.histroyLength}
                                         label="历史记录数量">
-                                        <InputNumber max={25} min={1} precision={0}/>
+                                        <InputNumber max={200} min={1} precision={0}/>
                                     </Form.Item>
                                 </Col>) : null }
                         </Row>

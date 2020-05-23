@@ -3,6 +3,10 @@
     .ant-spin-nested-loading > div > .ant-spin{
         max-height: unset;
     }
+    .warm-tip{
+        color: rgba(0, 0, 0, 0.45);
+        margin-left: 20px;
+    }
     .paste-wrap{
         width: 100vw;
         height: 100vh;
@@ -38,6 +42,9 @@
         // flex-grow: 1;
         overflow: auto;
         background-color: #fff;
+        &.has-src{
+            align-items: flex-start;
+        }
         .clear-btn{
             position: absolute;
             top: 0;

@@ -32,7 +32,7 @@ function writeHistory(json) {
 }
 
 function copyText(txt){
-    utools.copyText(txt)
+    return utools.copyText(txt)
 }
 
 function redirect(plug, txt){

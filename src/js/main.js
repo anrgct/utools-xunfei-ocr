@@ -8,9 +8,10 @@ import SettingPage from './components/setting_page';
 import HistoryPage from './components/history_page';
 import { uploadImage, genFileAndupload } from './common';
 import { defaultConfig } from './default_config';
-import '../less/main.less';
 import 'antd/dist/antd.css';
-const { TextArea } = Input;
+import '../less/main.less';
+import TextArea from 'antd/es/input/TextArea.js';
+// const { TextArea } = Input;
 
 const antIcon = <LoadingOutlined style={{ fontSize: 40 }} spin />;
 
@@ -106,7 +107,7 @@ export class App extends Component {
         if(bapp && bapp.copyText(txt)){
             message.success('复制成功');
         }else{
-            message.success('复制失败');
+            message.error('复制失败');
         }
     }
 
@@ -122,7 +123,6 @@ export class App extends Component {
 
     handleScreenCapture = () => {
         bapp && bapp.screenCapture((base64)=>{
-            console.log(base64)
             this.genFileAndupload({ base64 })
         })
     }
@@ -181,9 +181,9 @@ export class App extends Component {
                             <div className='head-menu'>
                                 { hasError && <Button type="dashed" icon={<ReloadOutlined />} onClick={this.reUpload}>重新识别</Button> }
                                 <Button type="dashed" icon={<ScissorOutlined />} onClick={this.handleScreenCapture}>截图</Button>
-                                <Button type="dashed" icon={<CopyOutlined />} onClick={this.handleCopy}>复制</Button>
-                                <Button type="dashed" icon={<TranslationOutlined />} onClick={this.handleRedirct}>翻译</Button>
-                                { (config && config.history) && <Button type="dashed" icon={<HistoryOutlined />} onClick={this.openHistory}>历史</Button>}
+                                { txt && <Button type="dashed" icon={<CopyOutlined />} onClick={this.handleCopy}>复制</Button> }
+                                { txt && <Button type="dashed" icon={<TranslationOutlined />} onClick={this.handleRedirct}>翻译</Button> }
+                                { (config && config.history && !!historys.length) && <Button type="dashed" icon={<HistoryOutlined />} onClick={this.openHistory}>历史</Button>}
                                 <Button type="dashed" shape="circle" type="primary" icon={<SettingOutlined />} onClick={this.openSetting}></Button>
                             </div>
                             <div className='main-content'>
@@ -192,6 +192,7 @@ export class App extends Component {
                                         placeholder='没有内容' onChange={this.handleTextChange}/>)
                                     }
                             </div>
+                            {src && <p className="warm-tip">拖拽图片到桌面保存</p>}
                     </Spin>
                 </Paste_wrap>
                 {config && <SettingPage visible={settingVisible} closeSetting={this.closeSetting} 

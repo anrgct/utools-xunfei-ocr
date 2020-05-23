@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import localRequest from './localRequest';
+import localRequest from './local_request';
 // 文档检查
 const checkDocument = file => {
     const accept = ['.png', '.jpg', '.bmp', '.jpeg'];
@@ -57,7 +57,8 @@ export const uploadImage = function(file) {
 
             let formdata = new FormData();
             formdata.append("file", file);
-            fetch("http://down.aka.today/upload_file.php",{
+            formdata.append("type", config.type);
+            fetch("http://down.aka.today/v2/upload_file.php",{
                 method:"POST",
                 headers:{
                     // Content-Type:'application/x-www-form-urlencoded'
@@ -68,7 +69,7 @@ export const uploadImage = function(file) {
             .catch(rejectCallback)
 
         }else if(config.source == 'local'){
-            let key = config.keys[config.type] || {};
+            let key = config.keys || {};
             let { appId, appKey } = key;
             if (!appId || !appKey) {
                 message.error('请在设置中填入申请到的appId和apiKey');
@@ -80,7 +81,9 @@ export const uploadImage = function(file) {
                 resolveCallback, 
                 appId,
                 appKey,
-                rejectCallback
+                rejectCallback,
+                type:config.type,
+                api:config.api[config.type]
             })
         }
         
@@ -109,20 +112,32 @@ export const uploadImage = function(file) {
     let successResolve = (res) => {
         let data = res.data;
         let {
-            block
+            block, document
         } = data;
         let result = '';
-        block.forEach(blockItem => {
-            if (blockItem.type == 'text') {
-                let lines = blockItem.line.map(blockLineItem => {
-                    let words = blockLineItem.word.map(blockLineWordItem => {
-                        return blockLineWordItem.content;
+        if(block){
+            block.forEach(blockItem => {
+                if (blockItem.type == 'text') {
+                    let lines = blockItem.line.map(blockLineItem => {
+                        let words = blockLineItem.word.map(blockLineWordItem => {
+                            return blockLineWordItem.content;
+                        })
+                        return words.join(' ');
                     })
-                    return words.join(' ');
+                    result += lines.join('\n');
+                }
+            });
+        }else if(document){
+            let lines = document.blocks.map(blockItem => {
+                let lines = blockItem.lines.map(blockLineItem => {
+                    let words = blockLineItem.text
+                    return words;
                 })
-                result += lines.join('\n');
-            }
-        });
+                return lines.join('\n');
+            });
+            result = lines.join('\n');
+        }
+        
         this.setState({
             txt: result,
             hasError: false,
