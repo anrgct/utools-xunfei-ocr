@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FileAddOutlined, ClearOutlined } from '@ant-design/icons';
+import { FileImageOutlined, ClearOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
 export class img_box extends Component {
@@ -18,7 +18,7 @@ export class img_box extends Component {
                         </>
                     ) : (
                         <div className='img-box__intro' onClick={this.openFile}>
-                           <p><FileAddOutlined style={{fontSize:30}}/></p>
+                           <p><FileImageOutlined style={{fontSize:30}}/></p>
                            <p>粘贴图片或拖拽至此处</p>
                         </div>
                     )

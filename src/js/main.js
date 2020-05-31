@@ -171,6 +171,17 @@ export class App extends Component {
         let value = e.currentTarget.value;
         this.setState({ txt: value })
     }
+
+    showCurrentType = ()=>{
+        if(this.state.config && this.state.config.type){
+            let trans = {
+                print:'印刷文字识别',
+                handwrite:'手写文字识别',
+                multilang:'印刷文字识别（多语种）',
+            }
+            return trans[this.state.config.type]
+        }
+    }
     
     render() {
         const { txt, src, loading, settingVisible, historyVisible, historys, hasError, config} = this.state;
@@ -179,6 +190,7 @@ export class App extends Component {
                 <Paste_wrap uploadImage={this.uploadImage}>
                     <Spin spinning={loading} indicator={antIcon}>
                             <div className='head-menu'>
+                                <span className='type-title'>{this.showCurrentType()}</span>
                                 { hasError && <Button type="dashed" icon={<ReloadOutlined />} onClick={this.reUpload}>重新识别</Button> }
                                 <Button type="dashed" icon={<ScissorOutlined />} onClick={this.handleScreenCapture}>截图</Button>
                                 { txt && <Button type="dashed" icon={<CopyOutlined />} onClick={this.handleCopy}>复制</Button> }
