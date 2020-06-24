@@ -1,5 +1,5 @@
+
 .main-page{
-    background-color: #f5f5f5;
     .ant-spin-nested-loading > div > .ant-spin{
         max-height: unset;
     }
@@ -14,10 +14,9 @@
     .head-menu{
         padding: 10px 10px 0;
         /* margin: 10px; */
-        /* border-bottom: 1px solid red; */
         margin-bottom: 10px;
         background-color: #bec8c8;
-        border: 1px solid #d9d9d9;
+        border-bottom: 1px solid #d9d9d9;
         text-align: right;
         .type-title{
             float: left;
@@ -47,7 +46,7 @@
         position: relative;
         // flex-grow: 1;
         overflow: auto;
-        background-color: #fff;
+        
         &.has-src{
             align-items: flex-start;
         }
@@ -80,16 +79,11 @@
         height: 80vh;
         flex-basis: 50%;
         overflow: auto;
-        background-color: #fff;
     }
 
 }
-.ant-drawer-header{
-    background-color: #bec8c8;
-}
-.ant-drawer-title{
-    color: rgba(0, 0, 0, 0.65);
-}
+
+
 .setting-page{
     .ant-divider-horizontal{
         margin: 10px 0;
@@ -111,5 +105,34 @@
     }
     .ant-list-item-meta{
         align-self: flex-start;
+    }
+}
+@media (prefers-color-scheme: dark) {  
+    .main-page{
+        .img-box{
+            border: 1px solid #434343;
+        }
+        .head-menu{
+            background-color: #1f1f1f;
+            border-bottom: 1px solid #434343;
+        }
+    }
+}
+
+@media (prefers-color-scheme: light) {  
+    .main-page{
+        background-color: #f5f5f5;
+        .img-box{
+            background-color: #fff;
+        }
+        .edit-box{
+            background-color: #fff;
+        }
+    }
+    .ant-drawer-header{
+        background-color: #bec8c8;
+    }
+    .ant-drawer-title{
+        color: rgba(0, 0, 0, 0.65);
     }
 }
