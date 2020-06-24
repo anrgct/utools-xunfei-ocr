@@ -8,7 +8,15 @@ import SettingPage from './components/setting_page';
 import HistoryPage from './components/history_page';
 import { uploadImage, genFileAndupload } from './common';
 import { defaultConfig } from './default_config';
-import 'antd/dist/antd.css';
+if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+    import('antd/dist/antd.dark.css').finally(e=>{
+        mount()
+    });
+}else{
+    import('antd/dist/antd.css').finally(e=>{
+        mount()
+    });
+}
 import '../less/main.less';
 import TextArea from 'antd/es/input/TextArea.js';
 // const { TextArea } = Input;
@@ -216,5 +224,6 @@ export class App extends Component {
     }
 }
 
-
-ReactDOM.render(<App />, document.getElementById('root'));
+function mount(){
+    ReactDOM.render(<App />, document.getElementById('root'));
+}
