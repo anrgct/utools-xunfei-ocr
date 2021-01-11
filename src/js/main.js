@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Row, Spin, message, Input, Button } from 'antd';
-import { ScissorOutlined, LoadingOutlined, ReloadOutlined, SettingOutlined, CopyOutlined, TranslationOutlined, HistoryOutlined } from '@ant-design/icons';
+import { ScissorOutlined, LoadingOutlined, ReloadOutlined, SettingOutlined, CopyOutlined,
+     TranslationOutlined, HistoryOutlined, MergeCellsOutlined } from '@ant-design/icons';
 import Paste_wrap from './components/paste_wrap';
 import Img_box from './components/img_box';
 import SettingPage from './components/setting_page';
@@ -36,7 +37,12 @@ export class App extends Component {
             historys:[],
             hasError:false,
             file:null,
-            config:null
+            config: null,
+            pos:{
+                left: 0,
+                top: 0,
+                show: false
+            }
         }
         this.genFileAndupload = genFileAndupload.bind(this);
         this.uploadImage = uploadImage.bind(this);
@@ -190,27 +196,125 @@ export class App extends Component {
             return trans[this.state.config.type]
         }
     }
+
+    handleSelet = (e) => {
+        e.stopPropagation();
+        let {offsetX, offsetY} = e.nativeEvent;
+        let area = document.querySelector('.edit-box');
+        if(!area) {return}
+        let start = area.selectionStart;
+        let end = area.selectionEnd;
+        let offset = 20;
+
+        let {width, height} = area.getBoundingClientRect();
+        let halfX = width / 2;
+        let halfY = height / 2;
+        if(offsetX > width - offset){
+            offsetX = halfX
+        }
+        if(offsetY > height - offset){
+            offsetY = halfY
+        }
+
+        if(!offsetX || !offsetY){
+            offsetX = halfX;
+            offsetY = halfY;
+        }
+
+        if(document.activeElement == area && start !== end){
+            this.setState({
+                pos:{
+                    left: offsetX + offset,
+                    top: offsetY - offset,
+                    show: true
+                }
+            })
+        }else{
+            this.setState({
+                pos:{
+                    show: false
+                }
+            })
+        }
+        
+    }
+
+    handleAction = (action) => {
+        let {txt} = this.state;
+        let area = document.querySelector('.edit-box');
+        let start = area.selectionStart;
+        let end = area.selectionEnd;
+        let selectTxt = txt.slice(start, end);
+        switch(action){
+            case 'copy':
+                if(!selectTxt) return
+                if(window.bapp && window.bapp.copyText(selectTxt)){
+                    message.success('复制成功');
+                }else{
+                    message.error('复制失败');
+                }
+                break;
+            case 'cut':
+                if(!selectTxt) return
+                if(window.bapp && window.bapp.copyText(selectTxt)){
+                    message.success('复制成功');
+                    let newTxt = `${txt.slice(0, start)}${txt.slice(end)}`
+                    this.setState({
+                        txt: newTxt
+                    })
+                }else{
+                    message.error('复制失败');
+                }
+                break;
+            case 'merge':
+                if(!selectTxt) return
+                selectTxt = selectTxt.replace(/\n/g, '');
+                let newTxt = `${txt.slice(0, start)}${selectTxt}${txt.slice(end)}`
+                this.setState({
+                    txt: newTxt
+                })
+                break;
+        }
+    }
+
+    handleMergeAll = (params) => {
+        let area = document.querySelector('.edit-box');
+        area.select();
+        this.handleAction('merge')
+    }
+    
+    
     
     render() {
-        const { txt, src, loading, settingVisible, historyVisible, historys, hasError, config} = this.state;
+        const { txt, src, loading, settingVisible, historyVisible, historys, hasError, config, pos} = this.state;
         return (
             <div className="main-page">
                 <Paste_wrap uploadImage={this.uploadImage}>
-                    <Spin spinning={loading} indicator={antIcon}>
+                    <Spin spinning={loading} indicator={antIcon} onClick={this.handleSelet}>
                             <div className='head-menu'>
                                 <span className='type-title'>{this.showCurrentType()}</span>
                                 { hasError && <Button type="dashed" icon={<ReloadOutlined />} onClick={this.reUpload}>重新识别</Button> }
                                 <Button type="dashed" icon={<ScissorOutlined />} onClick={this.handleScreenCapture}>截图</Button>
                                 { txt && <Button type="dashed" icon={<CopyOutlined />} onClick={this.handleCopy}>复制</Button> }
+                                { txt && <Button type="dashed" icon={<MergeCellsOutlined />} onClick={this.handleMergeAll}>合并行</Button> }
                                 { txt && <Button type="dashed" icon={<TranslationOutlined />} onClick={this.handleRedirct}>翻译</Button> }
                                 { (config && config.history && !!historys.length) && <Button type="dashed" icon={<HistoryOutlined />} onClick={this.openHistory}>历史</Button>}
                                 <Button type="dashed" shape="circle" type="primary" icon={<SettingOutlined />} onClick={this.openSetting}></Button>
                             </div>
                             <div className='main-content'>
                                     <Img_box uploadImage={this.uploadImage} src={src} clearImg={this.clearImg}/>
-                                    { (txt || src) && (<TextArea rows={4} className="edit-box" value={txt} 
-                                        placeholder='没有内容' onChange={this.handleTextChange}/>)
-                                    }
+                                    { (txt || src) && (
+                                    <div className="right-box">
+                                        <TextArea rows={4} className="edit-box" value={txt} 
+                                        placeholder='没有内容' onChange={this.handleTextChange} 
+                                        onSelect={this.handleSelet} />
+                                        {pos.show && <div className="sectionBtns" style={{left: pos.left, top: pos.top}}>
+                                            <Button size='small' onClick={this.handleAction.bind(this, 'copy')}>复制</Button>
+                                            <Button size='small' onClick={this.handleAction.bind(this, 'cut')}>剪切</Button>
+                                            <Button size='small' onClick={this.handleAction.bind(this, 'merge')}>合并行</Button>
+                                        </div>}
+                                    </div>)}
+                                    
                             </div>
                             {src && <p className="warm-tip">拖拽图片到桌面保存</p>}
                     </Spin>

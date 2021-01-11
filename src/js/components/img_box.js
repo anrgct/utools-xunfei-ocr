@@ -13,7 +13,7 @@ export class img_box extends Component {
                 {
                     src ? (
                         <>
-                            <Button shape="circle" icon={<ClearOutlined />}  className='clear-btn' title='清除' onClick={this.props.clearImg} />
+                            <Button shape="circle" type="primary" icon={<ClearOutlined />}  className='clear-btn' title='清除' onClick={this.props.clearImg} />
                             <img src={src}/>
                         </>
                     ) : (
