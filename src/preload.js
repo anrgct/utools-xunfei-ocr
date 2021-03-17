@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const filePath = path.resolve(__dirname, 'js/history.json');
+const jsonPath = path.resolve(utools.getPath('home'),'.utools-xunfei-ocr/history.json');
 let configDb;
 
 //打开文件选择
@@ -21,14 +21,21 @@ function openFile() {
 }
 
 function readHistory() {
-    let str = fs.readFileSync(filePath);
-    let json = JSON.parse(str);
-    return json
+    if(fs.existsSync(jsonPath)){
+        let str = fs.readFileSync(jsonPath);
+        let json = JSON.parse(str);
+        return json
+    }else{
+        return []
+    }
 }
 
 function writeHistory(json) {
+    if(!fs.existsSync(path.dirname(jsonPath))){
+        fs.mkdirSync(path.dirname(jsonPath))
+    }
     let str = JSON.stringify(json);
-    fs.writeFileSync(filePath, str);
+    fs.writeFileSync(jsonPath, str);
 }
 
 function copyText(txt){
