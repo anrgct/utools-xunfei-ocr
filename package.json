@@ -24,7 +24,7 @@
     "@ant-design/icons": "^4.1.0",
     "antd": "^4.2.3",
     "crypto-js": "^3.1.9-1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"
   },
